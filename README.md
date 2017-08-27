@@ -19,16 +19,16 @@ $
 Using `npm` or `yarn`
 
 ```shell
-$ npm install -g php-pac
+$ npm install -g pacphp
 
-$ yarn global add php-pac
+$ yarn global add pacphp
 ```
 
 
 Using `composer`
 
 ```shell
-$ composer global require pac/cli
+$ composer global require pacphp/cli
 ```
 
 # Usage 

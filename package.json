@@ -1,0 +1,19 @@
+{
+  "name": "pacphp",
+  "version": "0.0.1",
+  "description": "A Elegant PHP Package manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hfcorriez/pac.git"
+  },
+  "author": "hfcorriez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hfcorriez/pac/issues"
+  },
+  "homepage": "https://github.com/hfcorriez/pac#readme"
+}
