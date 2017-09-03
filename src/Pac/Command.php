@@ -2,6 +2,13 @@
 
 namespace Pac;
 
+/**
+ * Class Command
+ *
+ * Command parser
+ *
+ * @package Pac
+ */
 class Command
 {
     /**
@@ -66,7 +73,7 @@ class Command
      * @param $name
      * @param $option
      *  name        Name for option
-     *  aliases     Alias names
+     *  alias       Alias name
      *  type        Option type: string, bool
      * @return $this
      */
@@ -74,7 +81,8 @@ class Command
     {
         $this->config['options'][] = array_merge([
             'name' => $name,
-            'type' => null
+            'type' => null,
+            'alias' => null
         ], $option);
         return $this;
     }
