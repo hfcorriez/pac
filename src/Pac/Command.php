@@ -13,6 +13,7 @@ class Command
      * @var array Default options
      */
     protected $config = array(
+        'auto' => true,
         'options' => []
     );
 
@@ -21,11 +22,23 @@ class Command
      *
      * @return Command
      */
-    public static function instance() {
+    public static function instance()
+    {
         if (!self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    /**
+     * Set Config
+     *
+     * @param array $config
+     * @return $this
+     */
+    public static function config(array $config)
+    {
+        return self::instance()->setConfig($config);
     }
 
     /**
@@ -34,7 +47,8 @@ class Command
      * @param string|array $args
      * @return array
      */
-    public static function parse($args) {
+    public static function parse($args)
+    {
         return self::instance()->parseCommand($args);
     }
 
@@ -62,6 +76,18 @@ class Command
             'name' => $name,
             'type' => null
         ], $option);
+        return $this;
+    }
+
+    /**
+     * Set config
+     *
+     * @param array $config
+     * @return $this
+     */
+    public function setConfig(array $config)
+    {
+        $this->config = array_merge($this->config, $config);
         return $this;
     }
 
@@ -95,6 +121,8 @@ class Command
         $program = array_shift($args);
         $commands = [];
         $options = [];
+        $unknowns = [];
+        $invalids = [];
 
         for ($i = 0; $i < count($args); $i++) {
             $arg = $args[$i];
@@ -120,14 +148,24 @@ class Command
                     'type' => null
                 ];
 
-                if ($optionConfig['type'] === 'string') {
+                $name = $optionConfig['name'];
+                $type = $optionConfig['type'];
+
+                if ($type === 'string') {
                     if (!$value && $nextArg) $value = $nextArg;
-                    $options[$optionConfig['name']] = $value;
+                    $options[$name] = $value;
                     continue;
-                } else if ($optionConfig['type'] === 'bool') {
-                    if ($value !== 'true' && $value !== 'false') continue;
-                    else if ($value === 'false') $options[$optionConfig['name']] = false;
-                    else $options[$optionConfig['name']] = true;
+                } else if ($type === 'number') {
+                    if (!$value && $nextArg) $value = $nextArg;
+                    if (!is_numeric($value)) $invalids[$name] = $value;
+                    else $options[$name] = (float)$value;
+                    continue;
+                } else if ($type === 'bool') {
+                    if ($value !== 'true' && $value !== 'false') {
+                        $invalids[$name] = $value;
+                        continue;
+                    } else if ($value === 'false') $options[$name] = false;
+                    else $options[$name] = true;
                     continue;
                 } else {
                     /**
@@ -141,12 +179,17 @@ class Command
                      * program -a false  =       a: false
                      */
                     if ($value) {
-                        $options[$optionConfig['name']] = static::autoValue($value);
+                        $options[$name] = static::autoValue($value);
                     } else if ($nextArg && static::isNotOption($nextArg)) {
-                        $options[$optionConfig['name']] = static::autoValue($nextArg);
+                        $options[$name] = static::autoValue($nextArg);
                         ++$i;
                     } else {
-                        $options[$optionConfig['name']] = true;
+                        $options[$name] = true;
+                    }
+
+                    if (!isset($optionConfigs[$key]) && !$this->config['auto']) {
+                        $unknowns[$name] = $options[$name];
+                        unset($options[$name]);
                     }
                 }
             } else {
@@ -157,7 +200,9 @@ class Command
         return [
             'program' => $program,
             'options' => $options,
-            'commands' => $commands
+            'commands' => $commands,
+            'unknowns' => $unknowns,
+            'invalids' => $invalids
         ];
     }
 
@@ -169,8 +214,9 @@ class Command
      */
     protected static function autoValue($value)
     {
-        if ($value === 'true') return true;
-        else if ($value === 'false') return false;
+        if ($value === 'true' || $value === '1') return true;
+        else if ($value === 'false' || $value === '0') return false;
+        else if (is_numeric($value)) return $value + 0;
         return $value;
     }
 
