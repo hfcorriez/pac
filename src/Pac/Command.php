@@ -4,13 +4,15 @@ namespace Pac;
 
 class Command
 {
+    /**
+     * @var $this
+     */
     protected static $instance;
 
     /**
      * @var array Default options
      */
     protected $config = array(
-        'argv' => array(),
         'options' => []
     );
 
