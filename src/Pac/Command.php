@@ -103,8 +103,6 @@ class Command
             $key = null;
             $value = null;
 
-            echo "$arg -> $nextArg\n";
-
             if (static::isLongOption($arg)) {
                 $argArr = explode('=', substr($arg, 2));
                 $key = $argArr[0];
