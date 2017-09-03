@@ -13,8 +13,7 @@ $args = Command::config(['auto' => true])
     ])
     ->parseCommand($argv);
 
-Console::log('hello');
-$password = Console::prompt('Plz input password: ', true);
-var_dump($password);
-Console::clip($password);
+Console::interactive("[You]: ", function($input) {
+    echo $input;
+});
 exit;

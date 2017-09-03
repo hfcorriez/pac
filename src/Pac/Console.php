@@ -97,7 +97,7 @@ class Console
      *
      * @param string               $text  The text to print
      * @param string|array|boolean $color The color or options for display
-     * @param bool|string          $auto_br
+     * @param bool|string          $autoBr
      * @return string
      * @example
      *
@@ -108,7 +108,7 @@ class Console
      *  text('Hello', array('red', 'bold')) // "Hello" with red color and bold style
      *  text('<grey red-bg>H<reset>ello')   // "H" with grey color and red background, "ello" with normal color
      */
-    public static function text($text, $color = null, $auto_br = false)
+    public static function text($text, $color = null, $autoBr = false)
     {
         // Normal colors set
         if (is_string($color) || is_array($color)) {
@@ -143,8 +143,8 @@ class Console
                 return $options ? "\033[" . join(';', $options) . "m" : $match[1];
             }, $text);
         }
-        $color === true && $auto_br = $color;
-        return $text . ($auto_br ? (is_bool($auto_br) ? PHP_EOL : $auto_br) : '');
+        $color === true && $autoBr = $color;
+        return $text . ($autoBr ? (is_bool($autoBr) ? PHP_EOL : $autoBr) : '');
     }
 
     /**
@@ -171,7 +171,7 @@ class Console
         }
         while (!$input && $retry > 0) {
             if (!$password) {
-                echo (string)$text;
+                echo self::text($text);
                 $input = trim(fgets(STDIN, 1024), "\n");
             } else {
                 $command = "/usr/bin/env bash -c 'echo OK'";
@@ -179,7 +179,7 @@ class Console
                     throw new \RuntimeException("Can not invoke bash to input password!");
                 }
                 $command = "/usr/bin/env bash -c 'read -s -p \""
-                    . addslashes($text)
+                    . self::text(addslashes($text))
                     . "\" input && echo \$input'";
                 $input = rtrim(shell_exec($command));
                 echo "\n";
@@ -193,21 +193,21 @@ class Console
      * Interactive mode
      *
      * @param string        $title   Prompt title
-     * @param \Closure      $cb      Line callback
-     * @param bool|\Closure $auto_br Auto br or completion function
+     * @param \Closure      $callback      Line callback
+     * @param bool|\Closure $autoBr Auto br or completion function
      */
-    public static function interactive($title, $cb, $auto_br = true)
+    public static function interactive($title, $callback, $autoBr = true)
     {
-        if ($auto_br instanceof \Closure) readline_completion_function($auto_br);
+        if ($autoBr instanceof \Closure) readline_completion_function($autoBr);
         while (true) {
-            $input = readline($title);
+            $input = readline(self::text($title));
             if ($input === false) {
                 exit(0);
             }
             if (strlen($input) == 0) continue;
             readline_add_history($input);
-            $cb($input);
-            if ($auto_br === true) echo PHP_EOL;
+            $callback($input);
+            if ($autoBr === true) echo PHP_EOL;
         }
     }
 
@@ -215,23 +215,23 @@ class Console
      * Confirm message
      *
      * @param string $text
-     * @param bool   $default
+     * @param bool   $defaultYes
      * @param int    $retry
      * @return bool
      * @example
      *
      *  confirm('Are you sure?', true)  // Will confirm with default "true" by empty input
      */
-    public static function confirm($text, $default = false, $retry = 3)
+    public static function confirm($text, $defaultYes = false, $retry = 3)
     {
-        print (string)$text . ' [' . ($default ? 'Y/n' : 'y/N') . ']: ';
+        print self::text((string)$text . ' [' . ($defaultYes ? 'Y/n' : 'y/N') . ']: ');
         $retry--;
         while (($input = trim(strtolower(fgets(STDIN, 1024)))) && !in_array($input, array('', 'y', 'n')) && $retry > 0) {
             echo PHP_EOL . 'Confirm: ';
             $retry--;
         }
         if ($retry == 0) die(PHP_EOL . 'Error input');
-        $ret = $input === '' ? ($default === true ? true : false) : ($input === 'y' ? true : false);
+        $ret = $input === '' ? ($defaultYes === true ? true : false) : ($input === 'y' ? true : false);
         return $ret;
     }
 
@@ -265,16 +265,11 @@ class Console
      * Execute the command
      *
      * @param string $cmd
-     * @param bool   $output
-     * @param array  $options
-     * @return int
+     * @param array $options
+     * @return array
      */
-    public static function exec($cmd, $output = false, $options = array())
+    public static function exec($cmd, $options = array())
     {
-        if (is_array($output)) {
-            $options = $output;
-            $output = false;
-        }
         $descriptors = array(
             1 => array("pipe", "w"),
             2 => array("pipe", "w")
@@ -282,16 +277,16 @@ class Console
         $options = self::$EXEC_OPTIONS + $options;
         $stdout = $stderr = $status = $write = $except = null;
         $process = proc_open($cmd, $descriptors, $pipes, $options['cwd'], $options['env']);
-        $time_end = time() + $options['timeout'];
+        $timeEnd = time() + $options['timeout'];
         if (is_resource($process)) {
             do {
-                $time_left = $time_end - time();
+                $timeLeft = $timeEnd - time();
                 $read = array($pipes[1]);
-                stream_select($read, $write, $except, $time_left);
+                stream_select($read, $write, $except, $timeLeft);
                 $stdout .= fread($pipes[1], 2048);
-            } while (!feof($pipes[1]) && $time_left > 0);
+            } while (!feof($pipes[1]) && $timeLeft > 0);
             fclose($pipes[1]);
-            if ($time_left <= 0) {
+            if ($timeLeft <= 0) {
                 proc_terminate($process);
                 $stderr = 'process terminated for timeout.';
                 $status = -1;
@@ -303,7 +298,7 @@ class Console
                 $status = proc_close($process);
             }
         }
-        return !$output ? $status : array($status, $stdout, $stderr);
+        return array($status, $stdout, $stderr);
     }
 
     /**
