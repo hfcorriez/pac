@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -11,15 +12,6 @@ $args = Command::config(['auto' => true])
     ])
     ->parseCommand($argv);
 
-//$command = new Command();
-//
-//$command->addOption('no', [
-//    'alias' => 'n',
-//    'type' => 'string'
-//]);
-//
-//// Will get the arguments you want
-//$args = $command->parse($argv);
 var_dump($args['invalids']);
 var_dump($args);
 exit;
