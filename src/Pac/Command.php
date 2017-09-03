@@ -141,9 +141,9 @@ class Command
                      * program -a false  =       a: false
                      */
                     if ($value) {
-                        $options[$optionConfig['name']] = static::safeValue($value);
+                        $options[$optionConfig['name']] = static::autoValue($value);
                     } else if ($nextArg && static::isNotOption($nextArg)) {
-                        $options[$optionConfig['name']] = static::safeValue($nextArg);
+                        $options[$optionConfig['name']] = static::autoValue($nextArg);
                         ++$i;
                     } else {
                         $options[$optionConfig['name']] = true;
@@ -167,7 +167,7 @@ class Command
      * @param string $value
      * @return bool
      */
-    protected static function safeValue($value)
+    protected static function autoValue($value)
     {
         if ($value === 'true') return true;
         else if ($value === 'false') return false;
