@@ -4,6 +4,7 @@
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use Pac\Command;
+use Pac\Console;
 
 $args = Command::config(['auto' => true])
     ->addOption('no', [
@@ -12,6 +13,8 @@ $args = Command::config(['auto' => true])
     ])
     ->parseCommand($argv);
 
-var_dump($args['invalids']);
-var_dump($args);
+Console::log('hello');
+$password = Console::prompt('Plz input password: ', true);
+var_dump($password);
+Console::clip($password);
 exit;

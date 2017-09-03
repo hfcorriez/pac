@@ -69,7 +69,17 @@ class Console
      */
     public static function success($text)
     {
-        self::log($text, 'greenbg');
+        self::log($text, 'green');
+    }
+
+    /**
+     * Done with something
+     *
+     * @param $text
+     */
+    public static function warn($text)
+    {
+        self::log($text, 'yellow');
     }
 
     /**
@@ -79,7 +89,7 @@ class Console
      */
     public static function error($text)
     {
-        self::log($text, 'redbg');
+        self::log($text, 'red');
     }
 
     /**
