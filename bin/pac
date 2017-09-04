@@ -6,12 +6,20 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 use Pac\Command;
 use Pac\Console;
 
-$args = Command::config(['auto' => true])
-    ->addOption('no', [
-        'alias' => 'n',
-        'type' => 'number',
-    ])
-    ->parseCommand($argv);
+$result = Command::parse($argv);
+var_dump($result);
+
+//$command = Command::config(['auto' => true])
+//    ->addOption('no', [
+//        'alias' => 'n',
+//        'type' => 'number',
+//    ])
+//    ->parseCommand($argv);
+//
+//$command->outputHelp([
+//    'test' => 'test For all'
+//]);
+die;
 
 Console::interactive("[You]: ", function($input) {
     echo $input;

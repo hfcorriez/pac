@@ -17,12 +17,19 @@ class Command
     protected static $instance;
 
     /**
+     * @var array
+     */
+    public $result = [];
+
+    /**
      * @var array Default options
      */
-    protected $config = array(
+    protected static $defaultConfig = array(
         'auto' => true,
         'options' => []
     );
+
+    protected $config;
 
     /**
      * Instance
@@ -43,20 +50,28 @@ class Command
      * @param array $config
      * @return $this
      */
-    public static function config(array $config)
+    public static function config(array $config = null)
     {
-        return self::instance()->setConfig($config);
+        if ($config) {
+            return self::instance()->setConfig($config);
+        } else {
+            return self::instance()->getConfig($config);
+        }
     }
 
     /**
      * Parse the args array or string
      *
      * @param string|array $args
+     * @param array $config
      * @return array
      */
-    public static function parse($args)
+    public static function parse($args, array $config = [])
     {
-        return self::instance()->parseCommand($args);
+        return self::instance()
+            ->setConfig($config)
+            ->parseCommand($args)
+            ->getResult();
     }
 
     /**
@@ -64,7 +79,7 @@ class Command
      */
     public function __construct(array $config = [])
     {
-        $this->config = array_merge($this->config, $config);
+        $this->config = array_merge(self::$defaultConfig, $config);
     }
 
     /**
@@ -82,7 +97,8 @@ class Command
         $this->config['options'][] = array_merge([
             'name' => $name,
             'type' => null,
-            'alias' => null
+            'alias' => null,
+            'title' => null
         ], $option);
         return $this;
     }
@@ -100,33 +116,79 @@ class Command
     }
 
     /**
-     * Parse the args array or string
+     * Get config
+     *
+     * @return $this
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Get config
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+
+    /**
+     * Set command
      *
      * @param string|array $args
-     * @return array
+     * @return $this
+     */
+    public function setCommand($args)
+    {
+        if (!is_array($args)) {
+            $args = explode(" ", $args);
+        }
+        $this->config['program'] = array_shift($args);
+        $this->config['args'] = $args;
+        return $this;
+    }
+
+    /**
+     * Parse command
+     *
+     * @param string|array $args
+     * @return $this
+     */
+    public function parseCommand($args = null)
+    {
+        if ($args) $this->setCommand($args);
+        $this->result = self::process($this->config);
+        return $this;
+    }
+
+    /**
+     * Parse the args array or string
+     *
+     * @param $config
+     * @return array program     Program name
      *      program     Program name
      *      options     Options with key
      *      commands    Commands
      */
-    public function parseCommand($args)
+    public static function process(array $config = null)
     {
-        if (!isset($this)) {
-            return self::instance()->parse($args);
-        }
-
-        if (!is_array($args)) {
-            $args = explode(" ", $args);
-        }
+        if (!$config) $config = self::$defaultConfig;
 
         $optionConfigs = [];
-        foreach ($this->config['options'] as $optionKey => $optionConfig) {
-            $optionConfigs[$optionConfig['name']] = $optionConfig;
-            if (isset($optionConfig['alias'])) {
-                $optionConfigs[$optionConfig['alias']] = $optionConfig;
+        if (!empty($config['options'])) {
+            foreach ($config['options'] as $optionKey => $optionConfig) {
+                $optionConfigs[$optionConfig['name']] = $optionConfig;
+                if (isset($optionConfig['alias'])) {
+                    $optionConfigs[$optionConfig['alias']] = $optionConfig;
+                }
             }
         }
 
-        $program = array_shift($args);
+        $args = $config['args'];
+        $program = $config['program'];
         $commands = [];
         $options = [];
         $unknowns = [];
@@ -195,7 +257,7 @@ class Command
                         $options[$name] = true;
                     }
 
-                    if (!isset($optionConfigs[$key]) && !$this->config['auto']) {
+                    if (!isset($optionConfigs[$key]) && !$config['auto']) {
                         $unknowns[$name] = $options[$name];
                         unset($options[$name]);
                     }
@@ -212,6 +274,42 @@ class Command
             'unknowns' => $unknowns,
             'invalids' => $invalids
         ];
+    }
+
+    /**
+     * Get help
+     *
+     * @param $commands
+     */
+    public function outputHelp($commands)
+    {
+        echo self::buildHelp($commands, $this->config);
+    }
+
+    /**
+     * Build help block
+     *
+     * @param array $commands
+     * @param array $config
+     * @return string
+     */
+    public static function buildHelp(array $commands, array $config = null)
+    {
+        if (!$config) $config = self::$defaultConfig;
+
+        $text = PHP_EOL . Console::text('USAGE', 'bold') . PHP_EOL . '  '. $config['program'] . ' <option> [command]' . PHP_EOL;
+        $text .= PHP_EOL . Console::text('COMMANDS', 'bold') . PHP_EOL;
+        foreach ($commands as $command => $title) {
+            $text .= '  ' . str_pad($command, 20, " ", STR_PAD_RIGHT) . $title . PHP_EOL;
+        }
+
+        $text .= PHP_EOL . Console::text('OPTIONS', 'bold') . PHP_EOL;
+        if (!empty($config['options'])) {
+            foreach ($config['options'] as $option) {
+                $text .= '  --' . str_pad($option['name'] . (!empty($option['alias']) ? '|-' . $option['alias'] : ''), 18, " ", STR_PAD_RIGHT) . (!empty($option['title']) ? $option['title'] : $option['type']) . PHP_EOL;
+            }
+        }
+        return $text . PHP_EOL;
     }
 
     /**
@@ -271,5 +369,4 @@ class Command
     {
         return strpos($arg, '=') !== false;
     }
-
 }
