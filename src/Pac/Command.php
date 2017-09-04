@@ -283,7 +283,20 @@ class Command
      */
     public function outputHelp($commands)
     {
-        echo self::buildHelp($commands, $this->config);
+        echo self::help($commands, $this->config);
+    }
+
+
+    /**
+     * Output help block
+     *
+     * @param array $commands
+     * @param array $config
+     * @return string
+     */
+    public static function help(array $commands, array $config = null)
+    {
+        echo self::buildHelp($commands, $config);
     }
 
     /**
@@ -297,14 +310,17 @@ class Command
     {
         if (!$config) $config = self::$defaultConfig;
 
-        $text = PHP_EOL . Console::text('USAGE', 'bold') . PHP_EOL . '  '. $config['program'] . ' <option> [command]' . PHP_EOL;
-        $text .= PHP_EOL . Console::text('COMMANDS', 'bold') . PHP_EOL;
-        foreach ($commands as $command => $title) {
-            $text .= '  ' . str_pad($command, 20, " ", STR_PAD_RIGHT) . $title . PHP_EOL;
+        $text = PHP_EOL . Console::text('USAGE', 'bold') . PHP_EOL . '  '. (!empty($config['usage']) ? $config['usage'] : ($config['program'] . " <option> [command]")) . PHP_EOL;
+
+        if (!$commands) {
+            $text .= PHP_EOL . Console::text('COMMANDS', 'bold') . PHP_EOL;
+            foreach ($commands as $command => $title) {
+                $text .= '  ' . str_pad($command, 20, " ", STR_PAD_RIGHT) . $title . PHP_EOL;
+            }
         }
 
-        $text .= PHP_EOL . Console::text('OPTIONS', 'bold') . PHP_EOL;
         if (!empty($config['options'])) {
+            $text .= PHP_EOL . Console::text('OPTIONS', 'bold') . PHP_EOL;
             foreach ($config['options'] as $option) {
                 $text .= '  --' . str_pad($option['name'] . (!empty($option['alias']) ? '|-' . $option['alias'] : ''), 18, " ", STR_PAD_RIGHT) . (!empty($option['title']) ? $option['title'] : $option['type']) . PHP_EOL;
             }

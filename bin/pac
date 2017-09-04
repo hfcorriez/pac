@@ -4,24 +4,38 @@
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use Pac\Command;
-use Pac\Console;
 
-$result = Command::parse($argv);
-var_dump($result);
+$command = Command::parse($argv);
 
-//$command = Command::config(['auto' => true])
-//    ->addOption('no', [
-//        'alias' => 'n',
-//        'type' => 'number',
-//    ])
-//    ->parseCommand($argv);
-//
-//$command->outputHelp([
-//    'test' => 'test For all'
-//]);
-die;
-
-Console::interactive("[You]: ", function($input) {
-    echo $input;
-});
-exit;
+if ($command['commands'] && $command['commands'][0] !== 'help') {
+    $commandFile = __DIR__ . "/commands/{$command['commands'][0]}.php";
+    if (file_exists($commandFile)) {
+        (require $commandFile)($command);
+    }
+} else {
+    Command::help([
+        'add' => 'Add package',
+        'rm' => 'Remove package',
+        'autoload' => 'Build autoload',
+        'config' => 'Show config',
+        'list' => 'List all dependency',
+        'search' => 'Search package',
+        'help' => 'Help',
+    ], [
+        'program' => $argv[0],
+        'options' => [
+            [
+                'name' => 'repo-url',
+                'title' => 'Repo url'
+            ],
+            [
+                'name' => 'dev',
+                'title' => 'Install dev dependency'
+            ],
+            [
+                'name' => 'force',
+                'title' => 'Force do something'
+            ]
+        ]
+    ]);
+}
