@@ -65,3 +65,49 @@ function idx(array $array, $key, $default = null) {
 
     return $default;
 }
+
+/**
+ * Returns the first element of an array. Exactly like reset(), but doesn't
+ * choke if you pass it some non-referenceable value like the return value of
+ * a function.
+ *
+ * @param    array Array to retrieve the first element from.
+ * @return   wild  The first value of the array.
+ */
+function first(array $arr) {
+    return reset($arr);
+}
+
+/**
+ * Returns the last element of an array. This is exactly like `end()` except
+ * that it won't warn you if you pass some non-referencable array to
+ * it -- e.g., the result of some other array operation.
+ *
+ * @param    array Array to retrieve the last element from.
+ * @return   wild  The last value of the array.
+ */
+function last(array $arr) {
+    return end($arr);
+}
+
+/**
+ * Returns the first key of an array.
+ *
+ * @param    array       Array to retrieve the first key from.
+ * @return   int|string  The first key of the array.
+ */
+function head_key(array $arr) {
+    reset($arr);
+    return key($arr);
+}
+
+/**
+ * Returns the last key of an array.
+ *
+ * @param    array       Array to retrieve the last key from.
+ * @return   int|string  The last key of the array.
+ */
+function last_key(array $arr) {
+    end($arr);
+    return key($arr);
+}

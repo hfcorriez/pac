@@ -14,31 +14,31 @@ class Console
      * @var array Colors
      */
     public static $COLORS = array(
-        'reset'       => 0,
-        'bold'        => 1,
-        'italic'      => 3,
-        'underline'   => 4,
-        'blink'       => 5,
-        'inverse'     => 7,
+        'reset' => 0,
+        'bold' => 1,
+        'italic' => 3,
+        'underline' => 4,
+        'blink' => 5,
+        'inverse' => 7,
         'linethrough' => 9,
-        'black'       => 30,
-        'red'         => 31,
-        'green'       => 32,
-        'yellow'      => 33,
-        'blue'        => 34,
-        'purple'      => 35,
-        'cyan'        => 36,
-        'white'       => 37,
-        'grey'        => 90,
-        'greybg'      => '49;5;8',
-        'blackbg'     => 40,
-        'redbg'       => 41,
-        'greenbg'     => 42,
-        'yellowbg'    => 43,
-        'bluebg'      => 44,
-        'purplebg'    => 45,
-        'cyanbg'      => 46,
-        'whitebg'     => 47,
+        'black' => 30,
+        'red' => 31,
+        'green' => 32,
+        'yellow' => 33,
+        'blue' => 34,
+        'purple' => 35,
+        'cyan' => 36,
+        'white' => 37,
+        'grey' => 90,
+        'greybg' => '49;5;8',
+        'blackbg' => 40,
+        'redbg' => 41,
+        'greenbg' => 42,
+        'yellowbg' => 43,
+        'bluebg' => 44,
+        'purplebg' => 45,
+        'cyanbg' => 46,
+        'whitebg' => 47,
     );
 
     /**
@@ -46,16 +46,16 @@ class Console
      */
     public static $EXEC_OPTIONS = array(
         'timeout' => 3600,
-        'env'     => array(),
-        'cwd'     => null
+        'env' => array(),
+        'cwd' => null
     );
 
     /**
      * Print the text
      *
-     * @param string               $text  The text to print
+     * @param string $text The text to print
      * @param string|array|boolean $color The color or options for display
-     * @param bool|string          $auto_br
+     * @param bool|string $auto_br
      */
     public static function log($text, $color = null, $auto_br = true)
     {
@@ -95,9 +95,9 @@ class Console
     /**
      * Color output text for the CLI
      *
-     * @param string               $text  The text to print
+     * @param string $text The text to print
      * @param string|array|boolean $color The color or options for display
-     * @param bool|string          $autoBr
+     * @param bool|string $autoBr
      * @return string
      * @example
      *
@@ -150,9 +150,9 @@ class Console
     /**
      * Prompt a message and get return
      *
-     * @param string   $text
-     * @param bool|int $password
-     * @param int      $retry
+     * @param string $text
+     * @param bool|int $hide
+     * @param int $retryOnEmpty
      * @throws \RuntimeException
      * @return string
      * @example
@@ -162,15 +162,16 @@ class Console
      *  prompt('Your password: ', true, 10) // Hide input and retry 3
      *  prompt('Your username: ', 5)        // Display input and retry 5
      */
-    public static function prompt($text, $password = false, $retry = 3)
+    public static function prompt($text, $hide = false, $retryOnEmpty = 0)
     {
         $input = '';
-        if (is_numeric($password)) {
-            $retry = $password;
-            $password = false;
+        if (is_numeric($hide)) {
+            $retryOnEmpty = $hide;
+            $hide = false;
         }
-        while (!$input && $retry > 0) {
-            if (!$password) {
+
+        while (!$input && $retryOnEmpty > -1) {
+            if (!$hide) {
                 echo self::text($text);
                 $input = trim(fgets(STDIN, 1024), "\n");
             } else {
@@ -184,7 +185,7 @@ class Console
                 $input = rtrim(shell_exec($command));
                 echo "\n";
             }
-            $retry--;
+            $retryOnEmpty--;
         }
         return $input;
     }
@@ -192,8 +193,8 @@ class Console
     /**
      * Interactive mode
      *
-     * @param string        $title   Prompt title
-     * @param \Closure      $callback      Line callback
+     * @param string $title Prompt title
+     * @param \Closure $callback Line callback
      * @param bool|\Closure $autoBr Auto br or completion function
      */
     public static function interactive($title, $callback, $autoBr = true)
@@ -215,8 +216,8 @@ class Console
      * Confirm message
      *
      * @param string $text
-     * @param bool   $defaultYes
-     * @param int    $retry
+     * @param bool $defaultYes
+     * @param int $retry
      * @return bool
      * @example
      *
