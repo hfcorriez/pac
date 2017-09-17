@@ -30,17 +30,48 @@ return function (array $command) {
     }
 
     if (!empty($package['dependencies'])) {
-        foreach ($package['dependencies'] as $name => $version) {
+        foreach ($package['dependencies'] as $name => $packageVersion) {
             $packageCacheDir = "$pacCacheDir/$name";
+            $packageCacheVersionDir = $gitUrl = $gitVersion = null;
+
+            if (preg_match("/^(\~|\^)\d\.\d\.\d$/", $packageVersion) > 0) {
+                // Find right version
+                $packageType = 'dist';
+                $rightVersion = '1.0.0';
+                $packageCacheVersionDir = "$packageCacheDir/$rightVersion";
+            } else {
+                list($gitUrl, $gitVersion) = explode('#' , $packageVersion);
+                $packageType = 'git';
+
+                if (!$gitVersion) {
+                    $gitVersion = 'master';
+                }
+
+                if(preg_match("/^(git|ssh|http)/", $packageVersion) === 0) {
+                    $gitUrl = "git://git@github.com:$gitUrl.git";
+                }
+
+                $packageCacheVersionDir = "$packageCacheDir/$gitVersion";
+            }
 
             // Download the latest
-            list($status) = Console::exec("git clone $version $packageCacheDir", ['stdio' => 'pipe']);
-            list($_, $hash) = Console::exec("git rev-parse HEAD", ['stdio' => 'pipe', 'cwd' => $packageCacheDir]);
+            if ($packageType === 'git') {
+                if (is_dir($packageCacheVersionDir)) {
+                    Console::exec("git pull", ['stdio' => 'pipe', 'cwd' => $packageCacheVersionDir]);
+                } else {
+                    Console::exec("git clone $gitUrl $packageCacheVersionDir", ['stdio' => 'pipe']);
+                    list($status) = Console::exec("git checkout $gitVersion", ['stdio' => 'pipe']);
+                    if ($status !== 0) {
+                        Console::error("$packageVersion is not exists");
+                    }
+                }
+            } else {
+                // Download
+            }
 
             // TODO: Check shasum
 
             // Check version
-            $version = trim($hash);
 
             // Check pac.json
 
@@ -51,6 +82,8 @@ return function (array $command) {
             // Resolve dependency
 
             // Merge dependency
+
+            // Copy to dist
 
             // Build autoloader
         }
