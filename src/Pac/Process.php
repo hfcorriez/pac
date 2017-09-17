@@ -15,10 +15,10 @@ class Process
      * @var array Execute command default options
      */
     public static $EXEC_OPTIONS = array(
-        'timeout' => 3600,
-        'env' => array(),
-        'cwd' => null,
-        'stdio' => false
+        'timeout' => 3600,          // Max time(seconds) to execute, default is 3600
+        'env' => array(),           // Env variables to pass
+        'cwd' => null,              // Current working dir
+        'stdio' => 'inherit'        // Support => inherit, pipe, ignore
     );
 
     /**
@@ -73,7 +73,7 @@ class Process
                 $read = array($pipes[1]);
                 stream_select($read, $write, $except, $timeLeft);
                 $output = fread($pipes[1], 10);
-                if (!$options['stdio']) {
+                if (!$options['stdio'] || $options['stdio'] === 'inherit') {
                     echo $output;
                 } else if ($options['stdio'] = 'pipe') {
                     $stdout .= $output;
@@ -87,7 +87,7 @@ class Process
             } else {
                 while (!feof($pipes[2])) {
                     $error = fread($pipes[2], 10);
-                    if (!$options['stdio']) {
+                    if (!$options['stdio'] || $options['stdio'] === 'inherit') {
                         echo $error;
                     } else if ($options['stdio'] = 'pipe') {
                         $stderr .= $error;
