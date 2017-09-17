@@ -1,0 +1,19 @@
+{
+    "name": "pacphp",
+    "version": "0.0.1",
+    "license": "MIT",
+    "author": {
+        "name": "hfcorriez",
+        "email": "hfcorri"
+    },
+    "namespace": {
+        "Pac": "src/Pac"
+    },
+    "autoload": [
+        "__init__.php",
+        "lib/*"
+    ],
+    "dependencies": {
+        "fiber": "git@github.com:pagon/fiber.git#master"
+    }
+}

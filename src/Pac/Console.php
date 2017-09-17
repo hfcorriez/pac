@@ -47,7 +47,8 @@ class Console
     public static $EXEC_OPTIONS = array(
         'timeout' => 3600,
         'env' => array(),
-        'cwd' => null
+        'cwd' => null,
+        'stdio' => false
     );
 
     /**
@@ -269,13 +270,16 @@ class Console
      * @param array $options
      * @return array
      */
-    public static function exec($cmd, $options = array())
+    public static function exec($cmd, array $options = array())
     {
         $descriptors = array(
+            0 => array("pipe", "r"),
             1 => array("pipe", "w"),
             2 => array("pipe", "w")
         );
-        $options = self::$EXEC_OPTIONS + $options;
+
+        $options = $options + self::$EXEC_OPTIONS;
+
         $stdout = $stderr = $status = $write = $except = null;
         $process = proc_open($cmd, $descriptors, $pipes, $options['cwd'], $options['env']);
         $timeEnd = time() + $options['timeout'];
@@ -284,7 +288,12 @@ class Console
                 $timeLeft = $timeEnd - time();
                 $read = array($pipes[1]);
                 stream_select($read, $write, $except, $timeLeft);
-                $stdout .= fread($pipes[1], 2048);
+                $output = fread($pipes[1], 10);
+                if (!$options['stdio']) {
+                    echo $output;
+                } else if ($options['stdio'] = 'pipe') {
+                    $stdout .= $output;
+                }
             } while (!feof($pipes[1]) && $timeLeft > 0);
             fclose($pipes[1]);
             if ($timeLeft <= 0) {
@@ -293,7 +302,12 @@ class Console
                 $status = -1;
             } else {
                 while (!feof($pipes[2])) {
-                    $stderr .= fread($pipes[2], 2048);
+                    $error = fread($pipes[2], 10);
+                    if (!$options['stdio']) {
+                        echo $error;
+                    } else if ($options['stdio'] = 'pipe') {
+                        $stderr .= $error;
+                    }
                 }
                 fclose($pipes[2]);
                 $status = proc_close($process);
@@ -303,14 +317,41 @@ class Console
     }
 
     /**
-     * Execute the command with pipe
+     * Execute the command daemonize
      *
      * @static
      * @param $cmd
      * @return int
      */
-    public static function pipe($cmd)
+    public static function daemonize($cmd)
     {
         return pclose(popen($cmd . ' &', 'r'));
+    }
+
+    /**
+     * Get username
+     *
+     * @return string
+     */
+    public static function pid() {
+        return getmypid();
+    }
+
+    /**
+     * Get username
+     *
+     * @return string
+     */
+    public static function user() {
+        return get_current_user();
+    }
+
+    /**
+     * Get home dir
+     *
+     * @return string
+     */
+    public static function home() {
+        return idx($_SERVER, 'HOME') ? : idx($_SERVER, 'HOMEDRIVE') . idx($_SERVER, 'HOMEPATH');
     }
 }
