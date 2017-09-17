@@ -1,11 +1,11 @@
 <?php
 
-use Pac\Command;
 use Pac\Console;
+use Pac\Process;
 
 return function (array $command) {
     $rootDir = getcwd();
-    $pacHomeDir = Console::home() . '/.pacphp';
+    $pacHomeDir = Process::home() . '/.pacphp';
     $pacCacheDir = "$pacHomeDir/caches";
     $jsonFile = $rootDir . '/pac.json';
     $packageDir = $rootDir . '/php_packages';
@@ -57,10 +57,10 @@ return function (array $command) {
             // Download the latest
             if ($packageType === 'git') {
                 if (is_dir($packageCacheVersionDir)) {
-                    Console::exec("git pull", ['stdio' => 'pipe', 'cwd' => $packageCacheVersionDir]);
+                    Process::exec("git pull", ['stdio' => 'pipe', 'cwd' => $packageCacheVersionDir]);
                 } else {
-                    Console::exec("git clone $gitUrl $packageCacheVersionDir", ['stdio' => 'pipe']);
-                    list($status) = Console::exec("git checkout $gitVersion", ['stdio' => 'pipe']);
+                    Process::exec("git clone $gitUrl $packageCacheVersionDir", ['stdio' => 'pipe']);
+                    list($status) = Process::exec("git checkout $gitVersion", ['stdio' => 'pipe']);
                     if ($status !== 0) {
                         Console::error("$packageVersion is not exists");
                     }
